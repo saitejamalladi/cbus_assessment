@@ -201,7 +201,46 @@ sequenceDiagram
 
 ---
 
-## Testing Strategy
+## Technology Stack
+
+### AWS Components (Cloud Infrastructure)
+- **AWS Lambda**: Serverless compute for API backend (Node.js 18 runtime)
+- **Amazon API Gateway**: REST API management with CORS support
+- **Amazon DynamoDB**: NoSQL database with Global Secondary Index (GSI) for efficient queries
+- **Amazon S3**: Static website hosting for frontend assets
+- **Amazon CloudFront**: Content Delivery Network (CDN) for global distribution
+- **AWS Identity and Access Management (IAM)**: Role-based access control and permissions
+- **AWS CloudFormation**: Infrastructure provisioning via CDK
+- **AWS CDK**: Infrastructure as Code framework (TypeScript)
+
+### Frontend Technologies
+- **React 19**: UI framework with hooks and modern features
+- **TypeScript**: Type-safe JavaScript for better developer experience
+- **Vite**: Fast build tool and development server
+- **Redux Toolkit**: State management with async thunks
+- **Material UI (MUI)**: React component library for consistent UI
+- **React Testing Library**: Testing utilities for React components
+- **Jest**: JavaScript testing framework
+
+### Backend Technologies
+- **Node.js 18/20**: JavaScript runtime environment
+- **TypeScript**: Type-safe backend development
+- **AWS SDK v3**: Official AWS JavaScript SDK
+- **Jest**: Backend testing framework
+
+### Development & DevOps Tools
+- **npm**: Package management and scripts
+- **GitHub Actions**: CI/CD platform for automated testing and deployment
+- **ESLint**: Code linting and quality enforcement
+- **Prettier**: Code formatting (implied in project structure)
+- **Faker.js (@faker-js/faker)**: Synthetic data generation for testing/seeding
+
+### Data & Configuration
+- **DynamoDB GSI**: `registration_date_index` for efficient pagination queries
+- **Environment Variables**: Vite environment variables for API configuration
+- **CORS Configuration**: Cross-origin resource sharing for web app access
+
+---
 Frontend (Jest + RTL):
 - `CustomersTable` renders rows and headers
 - `InfiniteScrollSentinel` triggers load more when visible
