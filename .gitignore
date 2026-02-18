@@ -1,6 +1,7 @@
 node_modules/
 .dist/
 .out/
+cdk.out/
 backend/lambda/dist/
 .env
 .DS_Store
