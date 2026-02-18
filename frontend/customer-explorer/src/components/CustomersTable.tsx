@@ -14,7 +14,8 @@ import {
 import type { RootState } from '../store';
 
 const CustomersTable: React.FC = () => {
-  const { customers, loading, error } = useSelector((state: RootState) => state.customers);
+  const { data, loading, error } = useSelector((state: RootState) => state.customers);
+  const isLoading = loading === 'loading';
 
   if (error) {
     return (
@@ -36,17 +37,17 @@ const CustomersTable: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {customers.map((customer) => (
+          {data.map((customer) => (
             <TableRow key={customer.id}>
               <TableCell>{customer.id}</TableCell>
-              <TableCell>{customer.full_name}</TableCell>
+              <TableCell>{customer.fullName}</TableCell>
               <TableCell>{customer.email}</TableCell>
               <TableCell>
-                {new Date(customer.registration_date).toLocaleDateString()}
+                {new Date(customer.registrationDate).toLocaleDateString()}
               </TableCell>
             </TableRow>
           ))}
-          {loading && (
+          {isLoading && (
             <TableRow>
               <TableCell colSpan={4} align="center">
                 <Typography>Loading...</Typography>

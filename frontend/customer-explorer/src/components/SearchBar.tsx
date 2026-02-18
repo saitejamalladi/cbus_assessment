@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { TextField, Box } from '@mui/material';
 import { fetchInitial } from '../store/customersSlice';
+import type { AppDispatch } from '../store';
 
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -22,7 +23,7 @@ const useDebounce = (value: string, delay: number) => {
 const SearchBar: React.FC = () => {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 300);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     dispatch(fetchInitial({ pageSize: 20, q: debouncedQuery }));
