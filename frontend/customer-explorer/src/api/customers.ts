@@ -7,7 +7,7 @@ export interface CustomersResponse {
   cursor?: string
 }
 
-const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL || ''
+const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
 export async function getCustomers(params: {
   pageSize: number
