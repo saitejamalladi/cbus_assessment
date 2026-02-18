@@ -84,5 +84,31 @@ jobs:
         working-directory: infra/cdk
 
       - name: CDK Deploy
-        run: npm run cdk -- deploy --require-approval never
+        id: deploy
+        run: |
+          npm run cdk -- deploy --require-approval never --outputs-file cdk-outputs.json
+          echo "s3-bucket-name=$(jq -r '.CustomerStack.S3BucketName' cdk-outputs.json)" >> $GITHUB_OUTPUT
+          echo "cloudfront-id=$(jq -r '.CustomerStack.CloudFrontDistributionId' cdk-outputs.json)" >> $GITHUB_OUTPUT
         working-directory: infra/cdk
+
+      - name: Setup Node.js for Frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: frontend/customer-explorer/package-lock.json
+
+      - name: Install Frontend dependencies
+        run: npm ci
+        working-directory: frontend/customer-explorer
+
+      - name: Build Frontend
+        run: npm run build
+        working-directory: frontend/customer-explorer
+
+      - name: Deploy Frontend to S3
+        run: aws s3 sync dist/ s3://${{ steps.deploy.outputs.s3-bucket-name }} --delete
+        working-directory: frontend/customer-explorer
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id ${{ steps.deploy.outputs.cloudfront-id }} --paths "/*"

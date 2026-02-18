@@ -3,6 +3,9 @@ import { Construct } from 'constructs';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Function, Runtime, Code } from 'aws-cdk-lib/aws-lambda';
 import { RestApi, LambdaIntegration, Cors } from 'aws-cdk-lib/aws-apigateway';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Distribution, OriginAccessIdentity, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as path from 'path';
 
 const DEV_ORIGIN = 'http://localhost:5173';
@@ -50,6 +53,43 @@ export class CustomerStack extends Stack {
     const customersResource = api.root.addResource('customers');
     customersResource.addMethod('GET', new LambdaIntegration(fetchCustomersLambda));
 
+    // Frontend hosting with S3 + CloudFront
+    const websiteBucket = new Bucket(this, 'CustomerExplorerBucket', {
+      bucketName: `customer-explorer-${this.account}-${this.region}`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      blockPublicAccess: {
+        blockPublicAcls: true,
+        blockPublicPolicy: true,
+        ignorePublicAcls: true,
+        restrictPublicBuckets: true
+      }
+    });
+
+    const originAccessIdentity = new OriginAccessIdentity(this, 'CustomerExplorerOAI', {
+      comment: 'OAI for Customer Explorer frontend'
+    });
+
+    websiteBucket.grantRead(originAccessIdentity);
+
+    const distribution = new Distribution(this, 'CustomerExplorerDistribution', {
+      defaultBehavior: {
+        origin: new S3Origin(websiteBucket, {
+          originAccessIdentity: originAccessIdentity
+        }),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+      },
+      defaultRootObject: 'index.html',
+      errorResponses: [
+        {
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html'
+        }
+      ]
+    });
+
     new CfnOutput(this, 'ApiGatewayUrl', {
       value: api.url,
       description: 'API Gateway base URL'
@@ -58,6 +98,21 @@ export class CustomerStack extends Stack {
     new CfnOutput(this, 'DynamoDBTableName', {
       value: customersTable.tableName,
       description: 'DynamoDB table name'
+    });
+
+    new CfnOutput(this, 'FrontendUrl', {
+      value: `https://${distribution.distributionDomainName}`,
+      description: 'Frontend application URL'
+    });
+
+    new CfnOutput(this, 'S3BucketName', {
+      value: websiteBucket.bucketName,
+      description: 'S3 bucket for frontend hosting'
+    });
+
+    new CfnOutput(this, 'CloudFrontDistributionId', {
+      value: distribution.distributionId,
+      description: 'CloudFront distribution ID'
     });
   }
 }
