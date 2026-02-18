@@ -55,7 +55,7 @@ A full-stack web application for exploring customer data with infinite scroll an
 
 ### Deployment
 
-1. **Deploy infrastructure**
+1. **Deploy infrastructure and frontend**
    ```bash
    cd infra/cdk
    npm run cdk deploy
@@ -67,15 +67,9 @@ A full-stack web application for exploring customer data with infinite scroll an
    npm run seed
    ```
 
-3. **Update frontend config**
-   Edit `frontend/customer-explorer/.env` with the API Gateway URL from CDK outputs.
-
-4. **Build and host frontend**
-   ```bash
-   cd frontend/customer-explorer
-   npm run build
-   # Upload dist/ to S3 or GitHub Pages
-   ```
+3. **Access the application**
+   - Frontend: Check CDK outputs for `FrontendUrl`
+   - API: Check CDK outputs for `ApiGatewayUrl`
 
 ## API Usage
 
