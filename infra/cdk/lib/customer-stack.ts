@@ -19,7 +19,8 @@ export class CustomerStack extends Stack {
 
     customersTable.addGlobalSecondaryIndex({
       indexName: 'registration_date_index',
-      partitionKey: { name: 'registration_date', type: AttributeType.STRING },
+      partitionKey: { name: 'entity_type', type: AttributeType.STRING },
+      sortKey: { name: 'registration_date', type: AttributeType.STRING },
       projectionType: ProjectionType.ALL
     });
 
