@@ -29,7 +29,7 @@ export class CustomerStack extends Stack {
       functionName: 'customers-fetch',
       runtime: Runtime.NODEJS_18_X,
       handler: 'index.getCustomersHandler',
-      code: Code.fromAsset(path.join(__dirname, '../../backend/lambda/dist')),
+      code: Code.fromAsset(path.join(__dirname, '../../../backend/lambda/dist')),
       timeout: Duration.seconds(10),
       environment: {
         CUSTOMERS_TABLE_NAME: customersTable.tableName,
