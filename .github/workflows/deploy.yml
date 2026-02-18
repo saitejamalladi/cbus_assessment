@@ -46,7 +46,6 @@ jobs:
     needs: synth
     runs-on: ubuntu-latest
     environment: production
-    if: ${{ vars.AWS_DEPLOY_ENABLED == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
