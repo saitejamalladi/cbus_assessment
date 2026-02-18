@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "cdk": "cdk",
-    "synth": "cdk synth"
+    "cdk": "npx cdk",
+    "synth": "npx cdk synth"
   },
   "devDependencies": {
     "@types/node": "20.11.17",
