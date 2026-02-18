@@ -45,7 +45,7 @@ export class CustomerStack extends Stack {
     const api = new RestApi(this, 'CustomersApi', {
       restApiName: 'customers-api',
       defaultCorsPreflightOptions: {
-        allowOrigins: [DEV_ORIGIN],
+        allowOrigins: Cors.ALL_ORIGINS,
         allowMethods: Cors.ALL_METHODS
       }
     });

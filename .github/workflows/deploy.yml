@@ -89,6 +89,7 @@ jobs:
           npm run cdk -- deploy --require-approval never --outputs-file cdk-outputs.json
           echo "s3-bucket-name=$(jq -r '.CustomerStack.S3BucketName' cdk-outputs.json)" >> $GITHUB_OUTPUT
           echo "cloudfront-id=$(jq -r '.CustomerStack.CloudFrontDistributionId' cdk-outputs.json)" >> $GITHUB_OUTPUT
+          echo "api-gateway-url=$(jq -r '.CustomerStack.ApiGatewayUrl' cdk-outputs.json)" >> $GITHUB_OUTPUT
         working-directory: infra/cdk
 
       - name: Setup Node.js for Frontend
@@ -105,6 +106,8 @@ jobs:
       - name: Build Frontend
         run: npm run build
         working-directory: frontend/customer-explorer
+        env:
+          VITE_API_BASE_URL: ${{ steps.deploy.outputs.api-gateway-url }}
 
       - name: Deploy Frontend to S3
         run: aws s3 sync dist/ s3://${{ steps.deploy.outputs.s3-bucket-name }} --delete
