@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, BatchWriteCommand, BatchWriteCommandInput } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { faker } from '@faker-js/faker';
 
 const TABLE_NAME = 'customers';
@@ -56,7 +56,7 @@ async function seedCustomers() {
       PutRequest: { Item: customer }
     }));
 
-    const commandInput: BatchWriteCommandInput = {
+    const commandInput = {
       RequestItems: {
         [TABLE_NAME]: putRequests
       }
@@ -67,8 +67,13 @@ async function seedCustomers() {
       if (result.UnprocessedItems && Object.keys(result.UnprocessedItems).length > 0) {
         console.warn('Some items were not processed:', result.UnprocessedItems);
       }
-    } catch (error) {
-      console.error('Error writing batch:', error);
+    } catch (error: any) {
+      if (error.name === 'ResourceNotFoundException') {
+        console.error('Error: DynamoDB table not found. Please deploy the CDK stack first.');
+        console.error('Run: cd infra/cdk && npm run cdk deploy');
+      } else {
+        console.error('Error writing batch:', error);
+      }
       throw error;
     }
   }
