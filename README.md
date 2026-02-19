@@ -128,8 +128,7 @@ curl "https://<api-id>.execute-api.<region>.amazonaws.com/prod/customers?pageSiz
 
 ## Documentation
 
-- [Technical Design](docs/tech-design.md)
 - [Functional Requirements](docs/functional-requirements.md)
+- [Technical Design](docs/tech-design.md)
 - [Local Runbook](docs/local-runbook.md)
 - [API Reference](docs/api.md)
-- [Implementation Plan](docs/project-planning/implementation-plan.md)
