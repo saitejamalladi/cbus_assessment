@@ -17,7 +17,7 @@ export default function App() {
       <AppBar position="sticky" sx={{ bgcolor: 'primary.main' }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            CBUS Customer Data Assessment
+            CBUS Full Stack Assessment
           </Typography>
         </Toolbar>
       </AppBar>
