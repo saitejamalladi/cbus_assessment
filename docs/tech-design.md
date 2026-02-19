@@ -1,70 +1,25 @@
-# Tech Design — Customer Data Explorer (4-hour build)
+# Tech Design — Customer Data Explorer
 
 ## Overview
 A simple, cost-effective Full Stack React app with an AWS Lambda + API Gateway backend that lists customers with basic pagination. Optimized for free-tier and speed of delivery while demonstrating senior-level structure, testing, and security practices.
 
- - Frontend: React + TypeScript + Redux Toolkit
-- Backend: AWS Lambda (Node.js 18) + API Gateway (REST)
-- Data Store (free-tier path): DynamoDB (customers table)
+- Frontend: React + TypeScript + Redux Toolkit
+- Backend: AWS Lambda (Node.js 20) + API Gateway (REST)
+- Data Store: DynamoDB (customers table)
 - IaC: AWS CDK (TypeScript)
-- CI: GitHub Actions (build/test), optional CDK deploy with manual approval
+- CI: GitHub Actions (build/test), CDK deploy
 
-Note: Original plan chose RDS. Given time and free-tier constraints, DynamoDB is the simpler, cheaper serverless choice. An RDS variant is outlined at the end.
-
----
-
-## Prerequisites (AWS Account & Credentials)
-These steps ensure your environment can deploy and run the stack. Perform them manually before development/deploy.
-
-- Create AWS account
-  - Go to https://aws.amazon.com/ and create a new account.
-  - Sign in as the root user (email used to create the account).
-  - Enable MFA on the root user (Security best practice).
-
-- Recommended: Create an IAM user for CLI/CDK (do not use root keys)
-  - In AWS Console → IAM → Users → Add user (e.g., `cbus-dev`), select "Access key - Programmatic access".
-  - Attach policy: `AdministratorAccess` (for fast CDK setup in a sandbox account). You can restrict later.
-  - Create access key; download the `.csv` securely.
-
-- If you still choose root access keys (not recommended)
-  - In AWS Console → My Security Credentials → Access keys → Create access key.
-  - AWS strongly advises against root access keys; remove them after setup and prefer IAM.
-
-- Configure credentials on macOS (Terminal)
-  - Using AWS CLI (preferred):
-    ```bash
-    aws configure
-    # Enter AWS Access Key ID
-    # Enter AWS Secret Access Key
-    # Default region: ap-southeast-2  # choose your region
-    # Default output format: json
-    ```
-  - Or export environment variables for the current shell:
-    ```bash
-    export AWS_ACCESS_KEY_ID="<YOUR_ACCESS_KEY_ID>"
-    export AWS_SECRET_ACCESS_KEY="<YOUR_SECRET_ACCESS_KEY>"
-    export AWS_DEFAULT_REGION="ap-southeast-2"
-    ```
-  - Optional per-project credentials file:
-    - Create `~/.aws/credentials` and `~/.aws/config` with a named profile (e.g., `cbus`).
-    - Use `AWS_PROFILE=cbus` during CDK/CLI commands.
-
-- Security hygiene
-  - Never commit keys to git; use environment variables or AWS profiles.
-  - Rotate keys periodically; delete unused keys.
-  - Consider using AWS SSO for long-lived developer access.
+Note: Given time and free-tier constraints, DynamoDB is the simpler, cheaper serverless choice. 
 
 ---
-
-## Goals & Non-Goals
-- Goals: Paginated list, robust API contract, validation, predictable errors, accessibility basics, unit tests, minimal CI.
-- Non-goals: Complex auth, advanced filtering/sorting, heavy observability, multi-env promotion.
-
+## Scope
+- In Scope: Paginated list, robust API contract, validation, predictable errors, accessibility basics, unit tests, minimal CI.
+- Out of Scope: Complex auth, advanced filtering/sorting, heavy observability, multi-env promotion.
 ---
 
 ## Architecture
 - API Gateway exposes `/customers` (GET) with query params `pageSize` and optional `cursor`, plus optional `q` for search.
- - Lambda validates params, queries DynamoDB via a GSI on `registration_date` (descending) and returns items with pagination metadata.
+- Lambda validates params, queries DynamoDB via a GSI on `registration_date` (descending) and returns items with pagination metadata.
 - Frontend consumes the endpoint, renders a responsive table with infinite scrolling (auto load-more on near-bottom) and client-controlled search input.
 
 ### Components
@@ -152,12 +107,6 @@ Components:
 - `InfiniteScrollSentinel`: IntersectionObserver sentinel to trigger `fetchMore` when near bottom; debounced to avoid duplicate calls; show MUI `CircularProgress` when loading
 - `SearchBar`: MUI `TextField` controlled input updating `q`; debounced submit resets list and cursor, triggers `fetchInitial(pageSize, q)`
 
-Accessibility:
-- Semantic `<table>` with `<thead>`/`<tbody>`
-- Button labels, ARIA live region for pagination feedback
-- Color contrast via system defaults
- - Leverage MUI accessibility defaults and props (e.g., `aria-label` on `TextField`)
-
 ---
 
 ## Sequence Diagram
@@ -214,7 +163,7 @@ sequenceDiagram
 - **AWS CDK**: Infrastructure as Code framework (TypeScript)
 
 ### Frontend Technologies
-- **React 19**: UI framework with hooks and modern features
+- **React**: UI framework with hooks and modern features
 - **TypeScript**: Type-safe JavaScript for better developer experience
 - **Vite**: Fast build tool and development server
 - **Redux Toolkit**: State management with async thunks
@@ -223,7 +172,7 @@ sequenceDiagram
 - **Jest**: JavaScript testing framework
 
 ### Backend Technologies
-- **Node.js 18/20**: JavaScript runtime environment
+- **Node.js 20**: JavaScript runtime environment
 - **TypeScript**: Type-safe backend development
 - **AWS SDK v3**: Official AWS JavaScript SDK
 - **Jest**: Backend testing framework
@@ -255,7 +204,7 @@ Backend (Jest):
 ---
 
 ## CI/CD (GitHub Actions)
-- `ci.yml`: Node 18, install, lint, test (frontend/backend)
+- `ci.yml`: Node 20, install, lint, test (frontend/backend)
 - `deploy.yml`: CDK synth; manual approval; deploy to one dev stack
 
 ---
