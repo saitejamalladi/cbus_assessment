@@ -5,7 +5,7 @@ A full-stack web application for exploring customer data with infinite scroll an
 ## Features
 
 - **Infinite Scroll**: Load more customers as you scroll
-- **Search**: Case-sensitive search by name or email
+- **Search**: Search by name or email
 - **Responsive UI**: Material UI components
 - **Serverless Backend**: AWS Lambda with API Gateway
 - **Data Storage**: DynamoDB with GSI for efficient queries
