@@ -1,17 +1,9 @@
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
 import { AppBar, Toolbar, Typography, Box } from '@mui/material';
-import { fetchInitial } from './store/customersSlice';
 import SearchBar from './components/SearchBar';
 import CustomersTable from './components/CustomersTable';
 
 export default function App() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(fetchInitial({ pageSize: 20 }));
-  }, [dispatch]);
-
   return (
     <Box
       sx={{

@@ -5,6 +5,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from '
 const DEFAULT_PAGE_SIZE = 25;
 const MAX_PAGE_SIZE = 100;
 const MIN_PAGE_SIZE = 1;
+const MAX_SEARCH_QUERIES = 10;
 const ENTITY_TYPE = 'CUSTOMER';
 const ENTITY_TYPE_ATTR = 'entity_type';
 const CORS_HEADERS = {
@@ -82,7 +83,7 @@ export const handler = async (
 
     const searchTerm = normalizeSearchTerm(queryParams.q);
 
-    const queryInput = buildQueryInput({
+    const { items, lastEvaluatedKey } = await queryCustomers({
       tableName,
       indexName,
       pageSize,
@@ -90,11 +91,8 @@ export const handler = async (
       exclusiveStartKey
     });
 
-    const result = await dynamoClient.send(new QueryCommand(queryInput));
-
-    const items = (result.Items ?? []).map(mapCustomer);
-    const hasNext = Boolean(result.LastEvaluatedKey);
-    const cursor = encodeCursor(result.LastEvaluatedKey as CursorPayload | undefined);
+    const hasNext = Boolean(lastEvaluatedKey);
+    const cursor = encodeCursor(lastEvaluatedKey as CursorPayload | undefined);
 
     return ok({
       data: items,
@@ -106,6 +104,66 @@ export const handler = async (
     console.error('Unhandled error while fetching customers', error);
     return serverError();
   }
+};
+
+type QueryCustomersArgs = {
+  tableName: string;
+  indexName: string;
+  pageSize: number;
+  searchTerm?: string;
+  exclusiveStartKey?: CursorPayload;
+};
+
+const queryCustomers = async ({
+  tableName,
+  indexName,
+  pageSize,
+  searchTerm,
+  exclusiveStartKey
+}: QueryCustomersArgs): Promise<{ items: CustomerResponse[]; lastEvaluatedKey?: CursorPayload }> => {
+  // Without a search term, a single Query is sufficient.
+  if (!searchTerm) {
+    const queryInput = buildQueryInput({
+      tableName,
+      indexName,
+      pageSize,
+      searchTerm,
+      exclusiveStartKey
+    });
+
+    const result = await dynamoClient.send(new QueryCommand(queryInput));
+    return {
+      items: (result.Items ?? []).map(mapCustomer),
+      lastEvaluatedKey: result.LastEvaluatedKey as CursorPayload | undefined
+    };
+  }
+
+  // With a search term, DynamoDB applies FilterExpression after reading a page.
+  // Loop to accumulate up to pageSize matching items (bounded to avoid long runtimes).
+  const collected: CustomerResponse[] = [];
+  let lastEvaluatedKey: CursorPayload | undefined = exclusiveStartKey;
+
+  for (let i = 0; i < MAX_SEARCH_QUERIES && collected.length < pageSize; i += 1) {
+    const remaining = pageSize - collected.length;
+    const queryInput = buildQueryInput({
+      tableName,
+      indexName,
+      pageSize: remaining,
+      searchTerm,
+      exclusiveStartKey: lastEvaluatedKey
+    });
+
+    const result = await dynamoClient.send(new QueryCommand(queryInput));
+    const pageItems = (result.Items ?? []).map(mapCustomer);
+    collected.push(...pageItems);
+    lastEvaluatedKey = result.LastEvaluatedKey as CursorPayload | undefined;
+
+    if (!lastEvaluatedKey) {
+      break;
+    }
+  }
+
+  return { items: collected, lastEvaluatedKey };
 };
 
 type BuildQueryInputArgs = {

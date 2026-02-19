@@ -61,6 +61,54 @@ describe('getCustomers handler', () => {
     expect(command.input.ExpressionAttributeValues[':search']).toBe('Ada');
   });
 
+  it('keeps querying until it fills the page when q provided', async () => {
+    mockSend
+      .mockResolvedValueOnce({
+        Items: [
+          {
+            id: 'c_1',
+            full_name: 'Ada Lovelace',
+            email: 'ada@example.com',
+            registration_date: '2024-01-01T00:00:00Z'
+          }
+        ],
+        LastEvaluatedKey: {
+          entity_type: 'CUSTOMER',
+          registration_date: '2024-01-01T00:00:00Z',
+          id: 'c_1'
+        }
+      })
+      .mockResolvedValueOnce({
+        Items: [
+          {
+            id: 'c_2',
+            full_name: 'Grace Hopper',
+            email: 'grace@example.com',
+            registration_date: '2024-01-02T00:00:00Z'
+          }
+        ],
+        LastEvaluatedKey: undefined
+      });
+
+    const event = buildEvent({ pageSize: '2', q: 'a' });
+    const response = await handler(event);
+
+    expect(mockSend).toHaveBeenCalledTimes(2);
+    const firstCommand = mockSend.mock.calls[0][0];
+    const secondCommand = mockSend.mock.calls[1][0];
+    expect(firstCommand).toBeInstanceOf(QueryCommand);
+    expect(secondCommand).toBeInstanceOf(QueryCommand);
+    expect(secondCommand.input.ExclusiveStartKey).toEqual({
+      entity_type: 'CUSTOMER',
+      registration_date: '2024-01-01T00:00:00Z',
+      id: 'c_1'
+    });
+
+    const body = JSON.parse(response.body!);
+    expect(body.data).toHaveLength(2);
+    expect(body.hasNext).toBe(false);
+  });
+
   it('rejects invalid pageSize', async () => {
     const response = await handler(buildEvent({ pageSize: '500' }));
     expect(response.statusCode).toBe(400);

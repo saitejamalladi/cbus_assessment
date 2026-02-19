@@ -56,9 +56,10 @@ const customersSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchInitial.pending, (state) => {
+      .addCase(fetchInitial.pending, (state, action) => {
         state.loading = 'loading'
         state.error = undefined
+        state.q = action.meta.arg.q
       })
       .addCase(fetchInitial.fulfilled, (state, action) => {
         state.loading = 'succeeded'
@@ -71,9 +72,10 @@ const customersSlice = createSlice({
         state.loading = 'failed'
         state.error = action.error.message
       })
-      .addCase(fetchMore.pending, (state) => {
+      .addCase(fetchMore.pending, (state, action) => {
         state.loading = 'loading'
         state.error = undefined
+        state.q = action.meta.arg.q
       })
       .addCase(fetchMore.fulfilled, (state, action) => {
         state.loading = 'succeeded'
