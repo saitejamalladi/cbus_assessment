@@ -33,11 +33,12 @@ const SearchBar: React.FC = () => {
     <Box sx={{ mb: 2 }}>
       <TextField
         fullWidth
-        label="Search by name or email"
+        label="Search"
+        InputLabelProps={{ shrink: true }}
         variant="outlined"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Enter name or email..."
+        placeholder="Search by name or email"
       />
     </Box>
   );
