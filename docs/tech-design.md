@@ -22,6 +22,8 @@ Note: Given time and free-tier constraints, DynamoDB is the simpler, cheaper ser
 - Lambda validates params, queries DynamoDB via a GSI on `registration_date` (descending) and returns items with pagination metadata.
 - Frontend consumes the endpoint, renders a responsive table with infinite scrolling (auto load-more on near-bottom) and client-controlled search input.
 
+![alt text](architecture.png)
+
 ### Components
 - React App: `CustomersTable`, `InfiniteScrollSentinel`, `store/customersSlice` (Redux Toolkit)
 - Lambda: `getCustomers.handler` with `validateQuery`, `queryCustomers`, `mapResponse`
