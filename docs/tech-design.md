@@ -162,38 +162,6 @@ Seeding:
 
 ---
 
-## Lambda Logic (getCustomers)
-- Parse and validate `pageSize`; accept optional `cursor` and `q`.
-- Initial load: Query GSI for latest `registration_date` with `Limit = pageSize`.
-- Load more: If `cursor` present, pass as `ExclusiveStartKey`.
-- If `q` present: apply FilterExpression `contains(full_name, :q) OR contains(email, :q)` (case-insensitive) on the query.
-- Map items to `{ id, fullName, email, registrationDate }`.
-- Return `{ data, pageSize, hasNext, cursor? }`.
-
-Security & Resilience:
-- Input validation and bounds for `pageSize`.
-- JSON-only responses; consistent error envelopes.
-- CORS: Allow All.
-- Timeouts: Lambda 6–10s; retries off for idempotent reads.
-- Performance note: FilterExpression runs server-side but still reads items; acceptable for demo scale. For larger datasets, consider dedicated GSIs per search need or full-text offload.
-
----
-
-## Frontend Design (React + Redux Toolkit + MUI)
-Store: `customersSlice`
-- State: `{ data, pageSize, hasNext, cursor, q, loading, error }`
-- Thunks: `fetchInitial(pageSize, q)`, `fetchMore(cursor, pageSize, q)`
-- Selectors: `selectCustomers`, `selectHasNext`, `selectCursor`, `selectSearchTerm`
-
-Components:
-- UI Library: Material UI (MUI) for consistent components and styling
-- `CustomersTable`: MUI `Table`, `TableHead`, `TableRow`, `TableCell` with headers: ID, Full Name, Email, Registration Date
-- `InfiniteScrollSentinel`: IntersectionObserver sentinel to trigger `fetchMore` when near bottom; debounced to avoid duplicate calls; show MUI `CircularProgress` when loading
-- `SearchBar`: MUI `TextField` controlled input updating `q`; debounced submit resets list and cursor, triggers `fetchInitial(pageSize, q)`
-
-
----
-
 ## CI/CD (GitHub Actions)
 - `ci.yml`: Node 20, install, lint, test (frontend/backend)
 - `deploy.yml`: CDK synth; manual approval; deploy to one dev stack
@@ -209,7 +177,6 @@ Stack resources:
 Cost (free-tier friendly):
 - DynamoDB: within free-tier read/write capacity for demo
 - Lambda/API Gateway: minimal cost for infrequent invocations
-
 
 ---
 
