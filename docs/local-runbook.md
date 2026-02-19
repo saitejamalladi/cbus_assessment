@@ -4,7 +4,7 @@ This guide covers how to run and test the Customer Data Explorer application loc
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - AWS credentials configured (for backend testing with real DynamoDB)
 - Git
 
