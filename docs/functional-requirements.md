@@ -1,8 +1,3 @@
-*(Converted from the uploaded document )*
-
----
-
-```md
 # Full Stack React Coding Challenge – Customer Data Explorer
 
 ## Overview
@@ -83,4 +78,3 @@ You are free to choose the simplest data source for your customer data.
 - Comprehensive test coverage
 - Accessibility considerations
 - Additional features that enhance user experience
-```
