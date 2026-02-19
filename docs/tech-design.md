@@ -227,4 +227,4 @@ Cost (free-tier friendly):
 - Auth via Cognito or API Key
 - Observability (structured logs, metrics, alarms)
 - Stronger accessibility (keyboard shortcuts, focus management)
-- Integration tests using LocalStack or AWS SAM
+- Integration tests using LocalStack
