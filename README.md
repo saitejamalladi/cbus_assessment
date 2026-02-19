@@ -2,6 +2,8 @@
 
 A full-stack web application for exploring customer data with infinite scroll and search functionality. Built with React, TypeScript, Redux Toolkit, AWS Lambda, API Gateway, and DynamoDB.
 
+Live application: https://d2do4hucyqhan4.cloudfront.net/
+
 ## Features
 
 - **Infinite Scroll**: Load more customers as you scroll
