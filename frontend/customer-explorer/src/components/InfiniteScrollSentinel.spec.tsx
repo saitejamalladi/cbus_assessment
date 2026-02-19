@@ -2,7 +2,7 @@ import React from 'react'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import { render, waitFor } from '@testing-library/react'
-import { act } from 'react-dom/test-utils'
+import { act } from 'react'
 import customersReducer from '../store/customersSlice'
 jest.mock('../api/customers', () => ({
   getCustomers: jest.fn().mockResolvedValue({ data: [], pageSize: 20, hasNext: false }),
