@@ -32,6 +32,88 @@ Note: Given time and free-tier constraints, DynamoDB is the simpler, cheaper ser
 
 ---
 
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+  autonumber
+  participant User
+  participant FE as React App (Redux Toolkit)
+  participant API as API Gateway
+  participant L as Lambda (getCustomers)
+  participant DB as DynamoDB (customers)
+  User->>FE: Navigate to Customers
+  FE->>API: GET /customers?pageSize=25&q=
+  API->>L: Invoke Lambda (initial load)
+  L->>DB: Query by registration_date desc, limit 25 (no filter)
+  DB-->>L: Items + LastEvaluatedKey
+  L-->>API: 200 {data, pageSize, hasNext: true, cursor}
+  API-->>FE: JSON response
+  FE->>User: Render table (rows)
+  User->>FE: Type search term "John"
+  FE->>API: GET /customers?pageSize=25&q=John
+  API->>L: Invoke Lambda (search initial)
+  L->>DB: Query by registration_date desc, limit 25 with FilterExpression contains(full_name, "John") OR contains(email, "John")
+  DB-->>L: Filtered items + LastEvaluatedKey
+  L-->>API: 200 {data, pageSize, hasNext: true, cursor}
+  API-->>FE: JSON response
+  FE->>User: Replace list with filtered rows
+  User->>FE: Scroll near bottom
+  FE->>API: GET /customers?pageSize=25&cursor=eyJ...&q=John
+  API->>L: Invoke Lambda (load more)
+  L->>DB: Query with ExclusiveStartKey (same FilterExpression)
+  DB-->>L: Next items + LastEvaluatedKey
+  alt hasNext
+    L-->>API: 200 {data, pageSize, hasNext: true, cursor}
+  else no more
+    L-->>API: 200 {data, pageSize, hasNext: false}
+  end
+  API-->>FE: JSON response
+  FE->>User: Append rows to list
+```
+
+---
+
+
+## Technology Stack
+
+### AWS Components (Cloud Infrastructure)
+- **AWS Lambda**: Serverless compute for API backend (Node.js 18 runtime)
+- **Amazon API Gateway**: REST API management with CORS support
+- **Amazon DynamoDB**: NoSQL database with Global Secondary Index (GSI) for efficient queries
+- **Amazon S3**: Static website hosting for frontend assets
+- **Amazon CloudFront**: Content Delivery Network (CDN) for global distribution
+- **AWS Identity and Access Management (IAM)**: Role-based access control and permissions
+- **AWS CloudFormation**: Infrastructure provisioning via CDK
+- **AWS CDK**: Infrastructure as Code framework (TypeScript)
+
+### Frontend Technologies
+- **React**: UI framework with hooks and modern features
+- **TypeScript**: Type-safe JavaScript for better developer experience
+- **Vite**: Fast build tool and development server
+- **Redux Toolkit**: State management with async thunks
+- **Material UI (MUI)**: React component library for consistent UI
+- **React Testing Library**: Testing utilities for React components
+- **Jest**: JavaScript testing framework
+
+### Backend Technologies
+- **Node.js 20**: JavaScript runtime environment
+- **TypeScript**: Type-safe backend development
+- **AWS SDK**: Official AWS JavaScript SDK
+- **Jest**: Backend testing framework
+
+### Development & DevOps Tools
+- **npm**: Package management and scripts
+- **GitHub Actions**: CI/CD platform for automated testing and deployment
+- **ESLint**: Code linting and quality enforcement
+- **Prettier**: Code formatting (implied in project structure)
+- **Faker.js (@faker-js/faker)**: Synthetic data generation for testing/seeding
+
+### Data & Configuration
+- **DynamoDB GSI**: `registration_date_index` for efficient pagination queries
+- **Environment Variables**: Vite environment variables for API configuration
+- **CORS Configuration**: Cross-origin resource sharing for web app access
+
+---
 ## API Contract
 Endpoint: `/customers`
 
@@ -109,99 +191,6 @@ Components:
 - `InfiniteScrollSentinel`: IntersectionObserver sentinel to trigger `fetchMore` when near bottom; debounced to avoid duplicate calls; show MUI `CircularProgress` when loading
 - `SearchBar`: MUI `TextField` controlled input updating `q`; debounced submit resets list and cursor, triggers `fetchInitial(pageSize, q)`
 
----
-
-## Sequence Diagram
-```mermaid
-sequenceDiagram
-  autonumber
-  participant User
-  participant FE as React App (Redux Toolkit)
-  participant API as API Gateway
-  participant L as Lambda (getCustomers)
-  participant DB as DynamoDB (customers)
-  User->>FE: Navigate to Customers
-  FE->>API: GET /customers?pageSize=25&q=
-  API->>L: Invoke Lambda (initial load)
-  L->>DB: Query by registration_date desc, limit 25 (no filter)
-  DB-->>L: Items + LastEvaluatedKey
-  L-->>API: 200 {data, pageSize, hasNext: true, cursor}
-  API-->>FE: JSON response
-  FE->>User: Render table (rows)
-  User->>FE: Type search term "John"
-  FE->>API: GET /customers?pageSize=25&q=John
-  API->>L: Invoke Lambda (search initial)
-  L->>DB: Query by registration_date desc, limit 25 with FilterExpression contains(full_name, "John") OR contains(email, "John")
-  DB-->>L: Filtered items + LastEvaluatedKey
-  L-->>API: 200 {data, pageSize, hasNext: true, cursor}
-  API-->>FE: JSON response
-  FE->>User: Replace list with filtered rows
-  User->>FE: Scroll near bottom
-  FE->>API: GET /customers?pageSize=25&cursor=eyJ...&q=John
-  API->>L: Invoke Lambda (load more)
-  L->>DB: Query with ExclusiveStartKey (same FilterExpression)
-  DB-->>L: Next items + LastEvaluatedKey
-  alt hasNext
-    L-->>API: 200 {data, pageSize, hasNext: true, cursor}
-  else no more
-    L-->>API: 200 {data, pageSize, hasNext: false}
-  end
-  API-->>FE: JSON response
-  FE->>User: Append rows to list
-```
-
----
-
-## Technology Stack
-
-### AWS Components (Cloud Infrastructure)
-- **AWS Lambda**: Serverless compute for API backend (Node.js 18 runtime)
-- **Amazon API Gateway**: REST API management with CORS support
-- **Amazon DynamoDB**: NoSQL database with Global Secondary Index (GSI) for efficient queries
-- **Amazon S3**: Static website hosting for frontend assets
-- **Amazon CloudFront**: Content Delivery Network (CDN) for global distribution
-- **AWS Identity and Access Management (IAM)**: Role-based access control and permissions
-- **AWS CloudFormation**: Infrastructure provisioning via CDK
-- **AWS CDK**: Infrastructure as Code framework (TypeScript)
-
-### Frontend Technologies
-- **React**: UI framework with hooks and modern features
-- **TypeScript**: Type-safe JavaScript for better developer experience
-- **Vite**: Fast build tool and development server
-- **Redux Toolkit**: State management with async thunks
-- **Material UI (MUI)**: React component library for consistent UI
-- **React Testing Library**: Testing utilities for React components
-- **Jest**: JavaScript testing framework
-
-### Backend Technologies
-- **Node.js 20**: JavaScript runtime environment
-- **TypeScript**: Type-safe backend development
-- **AWS SDK v3**: Official AWS JavaScript SDK
-- **Jest**: Backend testing framework
-
-### Development & DevOps Tools
-- **npm**: Package management and scripts
-- **GitHub Actions**: CI/CD platform for automated testing and deployment
-- **ESLint**: Code linting and quality enforcement
-- **Prettier**: Code formatting (implied in project structure)
-- **Faker.js (@faker-js/faker)**: Synthetic data generation for testing/seeding
-
-### Data & Configuration
-- **DynamoDB GSI**: `registration_date_index` for efficient pagination queries
-- **Environment Variables**: Vite environment variables for API configuration
-- **CORS Configuration**: Cross-origin resource sharing for web app access
-
----
-Frontend (Jest + RTL):
-- `CustomersTable` renders rows and headers
-- `InfiniteScrollSentinel` triggers load more when visible
-- `SearchBar` debounces input and triggers `fetchInitial` with `q`
-- thunks `fetchInitial` and `fetchMore` handle success and error states; ensure no duplicate requests and proper reset on new `q`
-
-Backend (Jest):
-- `validateQuery` for bounds and types
-- `queryCustomers` returns items and `hasNext`
-- error mapping produces envelopes with correct status codes
 
 ---
 
@@ -214,7 +203,7 @@ Backend (Jest):
 ## Infrastructure (CDK)
 Stack resources:
 - DynamoDB: `customers` table + GSI
-- Lambda: Node.js 18, env vars, IAM perms for DynamoDB
+- Lambda: Node.js 20, env vars, IAM perms for DynamoDB
 - API Gateway: REST API, `/customers` route, CORS
 
 Cost (free-tier friendly):
